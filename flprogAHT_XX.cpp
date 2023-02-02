@@ -141,7 +141,7 @@ void FLProgAHT_XX::prepareRead()
 
 void FLProgAHT_XX::readData()
 {
-    unsigned long result, temp[6];
+    uint32_t result, temp[6];
     i2cDevice->requestFrom(addres, 6);
     if (i2cDevice->waitingForData(6))
     {
@@ -149,7 +149,7 @@ void FLProgAHT_XX::readData()
         codeError = FLPROG_AHT_DEVICE_NOT_CORRECT_DATA_ERROR;
         return;
     }
-    for (unsigned char i = 0; i2cDevice->available() > 0; i++)
+    for (uint8_t i = 0; i2cDevice->available() > 0; i++)
     {
         temp[i] = i2cDevice->read();
     }
@@ -169,9 +169,9 @@ void FLProgAHT_XX::readData()
     step = FLPROG_AHT_WAITING_READ_STEP;
 }
 
-unsigned char FLProgAHT_XX::readStatus()
+uint8_t FLProgAHT_XX::readStatus()
 {
-    unsigned char result = 0;
+    uint8_t result = 0;
     i2cDevice->requestFrom(addres, 1);
     result = i2cDevice->read();
     return result;

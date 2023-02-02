@@ -25,7 +25,7 @@ public:
     float getHumidity() { return hum; };
     float getTemperature() { return temper; };
     uint8_t getError() { return codeError; };
-    unsigned char readStatus();
+    uint8_t readStatus();
     void readSensor();
     void reset(void);
     void read();
