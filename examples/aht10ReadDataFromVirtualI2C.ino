@@ -14,50 +14,54 @@ uint32_t cicleTime = 0;
 
 void setup()
 {
-    Serial.begin(9600);
-    wireDevice.begin();
-    virtualWire.begin();
-    virtualWire1.begin();
-    startTime = millis();
-    startTime1 = millis();
+  Serial.begin(9600);
+  wireDevice.begin();
+  virtualWire.begin();
+  virtualWire1.begin();
+  startTime = millis();
+  startTime1 = millis();
 }
 
 void loop()
 {
-    sensor.pool();
 
-    sensor1.pool();
-    if (flprog::isTimer(startTime, 1000))
+  if (flprog::isTimer(startTime, 1000))
+  {
+    Serial.print("Temperatura - ");
+    Serial.println(sensor.getTemperature());
+    Serial.print("Hum - ");
+    Serial.println(sensor.getHumidity());
+    Serial.print("Error - ");
+    Serial.println(sensor.getError());
+    Serial.println();
+    Serial.print("Temperatura1 - ");
+    Serial.println(sensor1.getTemperature());
+    Serial.print("Hum1 - ");
+    Serial.println(sensor1.getHumidity());
+    Serial.print("Error1 - ");
+    Serial.println(sensor1.getError());
+    Serial.print("maxCicleTime - ");
+    Serial.println(maxCicleTime);
+    Serial.println();
+    Serial.println();
+    Serial.println();
+    startTime = millis();
+    sensor.read();
+    sensor1.read();
+  }
+  else
+  {
+    if (flprog::isTimer(startTime1, 2000))
     {
-        Serial.print("Temperatura - ");
-        Serial.println(sensor.getTemperature());
-        Serial.print("Hum - ");
-        Serial.println(sensor.getHumidity());
-        Serial.print("Error - ");
-        Serial.println(sensor.getError());
-        Serial.println();
-        Serial.print("Temperatura1 - ");
-        Serial.println(sensor1.getTemperature());
-        Serial.print("Hum1 - ");
-        Serial.println(sensor1.getHumidity());
-        Serial.print("Error1 - ");
-        Serial.println(sensor1.getError());
-        Serial.print("maxCicleTime - ");
-        Serial.println(maxCicleTime);
-        Serial.println();
-        Serial.println();
-        Serial.println();
-        startTime = millis();
-        sensor.read();
-        sensor1.read();
+      startCicleTime = micros();
+      sensor.pool();
+      sensor1.pool();
+      cicleTime = micros() - startCicleTime;
+      maxCicleTime = max(maxCicleTime, cicleTime);
     }
-    else
-    {
-        if (flprog::isTimer(startTime1, 2000))
-        {
-            startCicleTime = micros();
-            cicleTime = micros() - startCicleTime;
-            maxCicleTime = max(maxCicleTime, cicleTime);
-        }
+    else {
+      sensor.pool();
+      sensor1.pool();
     }
+  }
 }

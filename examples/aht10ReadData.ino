@@ -3,6 +3,7 @@
 FLProgI2C wireDevice(0);
 FLProgAHT_XX sensor(&wireDevice);
 uint32_t startTime;
+uint32_t startTime1;
 uint32_t maxCicleTime = 0;
 uint32_t startCicleTime = 0;
 uint32_t cicleTime = 0;
@@ -12,6 +13,7 @@ void setup()
     Serial.begin(9600);
     wireDevice.begin();
     startTime = millis() + 3000;
+    startTime1 = millis() + 3000;
 }
 
 void loop()
@@ -29,14 +31,22 @@ void loop()
         Serial.println(maxCicleTime);
         Serial.println();
         startTime = millis();
+        sensor.read();
     }
     else
     {
 
-        startCicleTime = micros();
-        sensor.read();
-        sensor.pool();
-        cicleTime = micros() - startCicleTime;
-        maxCicleTime = max(maxCicleTime, cicleTime);
+        if (flprog::isTimer(startTime1, 2000))
+        {
+            startCicleTime = micros();
+            sensor.pool();
+
+            cicleTime = micros() - startCicleTime;
+            maxCicleTime = max(maxCicleTime, cicleTime);
+        }
+        else
+        {
+            sensor.pool();
+        }
     }
 }
