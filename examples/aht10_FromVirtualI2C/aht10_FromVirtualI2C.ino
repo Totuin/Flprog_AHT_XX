@@ -59,7 +59,8 @@ void loop()
       cicleTime = micros() - startCicleTime;
       maxCicleTime = max(maxCicleTime, cicleTime);
     }
-    else {
+    else
+    {
       sensor.pool();
       sensor1.pool();
     }

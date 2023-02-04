@@ -20,6 +20,14 @@ void FLProgAHT_XX::checkDelay()
 
 void FLProgAHT_XX::pool()
 {
+    if (readPeriod > 0)
+    {
+        if (flprog::isTimer(startReadPeriod, readPeriod))
+        {
+            startReadPeriod = millis();
+            read();
+        }
+    }
     if (step == FLPROG_AHT_WAITING_DELAY)
     {
         checkDelay();
@@ -187,4 +195,9 @@ void FLProgAHT_XX::reset(void)
     sizeDelay = 20;
     stepAfterDelay = FLPROG_AHT_WAITING_READ_STEP;
     step = FLPROG_AHT_WAITING_DELAY;
+}
+
+void FLProgAHT_XX::setReadPeriod(uint32_t period)
+{
+    readPeriod = period;
 }

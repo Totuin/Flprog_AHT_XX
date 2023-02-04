@@ -29,6 +29,7 @@ public:
     void readSensor();
     void reset(void);
     void read();
+    void setReadPeriod(uint32_t period);
 
 private:
     void checkDelay();
@@ -49,4 +50,6 @@ private:
     uint32_t startDelay;
     uint32_t sizeDelay;
     uint8_t stepAfterDelay;
+    uint32_t readPeriod = 0;
+    uint32_t startReadPeriod = 0;
 };
