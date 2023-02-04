@@ -75,7 +75,10 @@ void FLProgAHT_XX::createError()
 {
 
     deviceIsInit = false;
-    step = FLPROG_AHT_WAITING_READ_STEP;
+    startDelay = millis();
+    sizeDelay = 500;
+    stepAfterDelay = FLPROG_AHT_WAITING_READ_STEP;
+    step = FLPROG_AHT_WAITING_DELAY;
     uint8_t wireDeviceError = i2cDevice->getErrorCode();
     if (wireDeviceError == 65)
     {
@@ -137,16 +140,13 @@ void FLProgAHT_XX::prepareRead()
 
 void FLProgAHT_XX::readData()
 {
-    uint32_t result, temp[6];
-    if (i2cDevice->fullRequestFrom(addres, 6))
+    uint32_t result;
+    uint32_t temp[6];
+    codeError = i2cDevice->fullRead(addres, temp, 6);
+    if (codeError)
     {
-        step = FLPROG_AHT_WAITING_READ_STEP;
-        codeError = FLPROG_AHT_DEVICE_NOT_CORRECT_DATA_ERROR;
+        createError();
         return;
-    }
-    for (uint8_t i = 0; i < 6; i++)
-    {
-        temp[i] = i2cDevice->read();
     }
     result = ((temp[1] << 16) | (temp[2] << 8) | temp[3]) >> 4;
     hum = result;
@@ -169,8 +169,7 @@ uint8_t FLProgAHT_XX::readStatus()
     uint8_t result = 0;
     if (i2cDevice->fullRequestFrom(addres, 1))
     {
-        step = FLPROG_AHT_WAITING_READ_STEP;
-        codeError = FLPROG_AHT_DEVICE_NOT_CORRECT_DATA_ERROR;
+        createError();
         return 0;
     }
     result = i2cDevice->read();
