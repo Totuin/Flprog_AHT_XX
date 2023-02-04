@@ -60,9 +60,7 @@ void FLProgAHT_XX::initDevice()
         createError();
         return;
     }
-    i2cDevice->beginTransmission(addres);
-    i2cDevice->write(eSensorCalibrateCmd, 3);
-    if (i2cDevice->endTransmission())
+    if (i2cDevice->fullWrite(addres, eSensorCalibrateCmd, 3))
     {
         createError();
         return;
@@ -126,9 +124,7 @@ void FLProgAHT_XX::readSensor()
 
 void FLProgAHT_XX::prepareRead()
 {
-    i2cDevice->beginTransmission(addres);
-    i2cDevice->write(eSensorMeasureCmd, 3);
-    if (i2cDevice->endTransmission())
+    if (i2cDevice->fullWrite(addres, eSensorMeasureCmd, 3))
     {
         createError();
         return;
@@ -142,14 +138,13 @@ void FLProgAHT_XX::prepareRead()
 void FLProgAHT_XX::readData()
 {
     uint32_t result, temp[6];
-    i2cDevice->requestFrom(addres, 6);
-    if (i2cDevice->waitingForData(6))
+    if (i2cDevice->fullRequestFrom(addres, 6))
     {
         step = FLPROG_AHT_WAITING_READ_STEP;
         codeError = FLPROG_AHT_DEVICE_NOT_CORRECT_DATA_ERROR;
         return;
     }
-    for (uint8_t i = 0; i2cDevice->available() > 0; i++)
+    for (uint8_t i = 0; i < 6; i++)
     {
         temp[i] = i2cDevice->read();
     }
@@ -172,16 +167,19 @@ void FLProgAHT_XX::readData()
 uint8_t FLProgAHT_XX::readStatus()
 {
     uint8_t result = 0;
-    i2cDevice->requestFrom(addres, 1);
+    if (i2cDevice->fullRequestFrom(addres, 1))
+    {
+        step = FLPROG_AHT_WAITING_READ_STEP;
+        codeError = FLPROG_AHT_DEVICE_NOT_CORRECT_DATA_ERROR;
+        return 0;
+    }
     result = i2cDevice->read();
     return result;
 }
 
 void FLProgAHT_XX::reset(void)
 {
-    i2cDevice->beginTransmission(addres);
-    i2cDevice->write(eSensorResetCmd);
-    if (i2cDevice->endTransmission())
+    if (i2cDevice->fullWrite(addres, eSensorResetCmd))
     {
         createError();
         return;
