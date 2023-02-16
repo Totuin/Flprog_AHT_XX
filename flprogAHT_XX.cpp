@@ -8,43 +8,15 @@ uint8_t eSensorResetCmd = 0xBA;
 FLProgAHT_XX::FLProgAHT_XX(FLProgI2C *device)
 {
     i2cDevice = device;
-}
-
-void FLProgAHT_XX::checkDelay()
-{
-    if (flprog::isTimer(startDelay, sizeDelay))
-    {
-        step = stepAfterDelay;
-    }
+    codeError = FLPROG_SENSOR_NOT_READY_ERROR;
+    addres = 0x38;
 }
 
 void FLProgAHT_XX::pool()
 {
-    if (readPeriod > 0)
-    {
-        if (flprog::isTimer(startReadPeriod, readPeriod))
-        {
-            startReadPeriod = millis();
-            read();
-        }
-    }
-    if (step == FLPROG_AHT_WAITING_DELAY)
-    {
-        checkDelay();
-    }
-    if (step == FLPROG_AHT_WAITING_READ_STEP)
-    {
-
-        if (isNeededRead)
-        {
-            readSensor();
-            isNeededRead = false;
-        }
-        else
-        {
-            return;
-        }
-    }
+    checkReadPeriod();
+    checkDelay();
+    checkNeededRead();
     if (step == FLPROG_AHT_CHECK_DEVICE_STATUS_STEP)
     {
         checkDeviceStatus();
@@ -56,55 +28,27 @@ void FLProgAHT_XX::pool()
     }
 }
 
-void FLProgAHT_XX::read()
-{
-    isNeededRead = true;
-}
-
 void FLProgAHT_XX::initDevice()
 {
     if (!(i2cDevice->findAddr(addres)))
     {
+        codeError = FLPROG_SENSOR_DEVICE_NOT_FOUND_ERROR;
         createError();
         return;
     }
-    if (i2cDevice->fullWrite(addres, eSensorCalibrateCmd, 3))
+    codeError = i2cDevice->fullWrite(addres, eSensorCalibrateCmd, 3);
+    if (codeError)
     {
         createError();
         return;
     }
-    startDelay = millis();
-    sizeDelay = 500;
-    stepAfterDelay = FLPROG_AHT_CHECK_DEVICE_STATUS_STEP;
-    step = FLPROG_AHT_WAITING_DELAY;
+    gotoStepWithDelay(FLPROG_AHT_CHECK_DEVICE_STATUS_STEP, 500);
 }
 
 void FLProgAHT_XX::createError()
 {
-
     deviceIsInit = false;
-    startDelay = millis();
-    sizeDelay = 500;
-    stepAfterDelay = FLPROG_AHT_WAITING_READ_STEP;
-    step = FLPROG_AHT_WAITING_DELAY;
-    uint8_t wireDeviceError = i2cDevice->getErrorCode();
-    if (wireDeviceError == 65)
-    {
-        codeError = FLPROG_AHT_DEVICE_NOT_CORRECT_BUS_NUMBER_ERROR;
-        return;
-    }
-    if (wireDeviceError == 61)
-    {
-        codeError = FLPROG_AHT_DEVICE_NOT_CORRECT_DEVICE_ADDRESS_ERROR;
-        return;
-    }
-    if (wireDeviceError == 2)
-    {
-        codeError = FLPROG_AHT_DEVICE_NOT_FOUND_ERROR;
-        return;
-    }
-
-    codeError = FLPROG_AHT_DEVICE_NOT_DEFINED_ERROR;
+    gotoStepWithDelay(FLPROG_SENSOR_WAITING_READ_STEP, 500);
 }
 
 void FLProgAHT_XX::checkDeviceStatus()
@@ -112,14 +56,14 @@ void FLProgAHT_XX::checkDeviceStatus()
     if ((readStatus() & 0x68) == 0x08)
     {
         deviceIsInit = true;
-        codeError = FLPROG_AHT_NOT_ERROR;
+        codeError = FLPROG_SENSOR_NOT_ERROR;
         readSensor();
     }
     else
     {
         deviceIsInit = false;
-        codeError = FLPROG_AHT_DEVICE_NOT_READY_ERROR;
-        step = FLPROG_AHT_WAITING_READ_STEP;
+        codeError = FLPROG_SENSOR_NOT_READY_ERROR;
+        createError();
     }
 }
 
@@ -135,15 +79,13 @@ void FLProgAHT_XX::readSensor()
 
 void FLProgAHT_XX::prepareRead()
 {
-    if (i2cDevice->fullWrite(addres, eSensorMeasureCmd, 3))
+    codeError = i2cDevice->fullWrite(addres, eSensorMeasureCmd, 3);
+    if (codeError)
     {
         createError();
         return;
     }
-    startDelay = millis();
-    sizeDelay = 150;
-    stepAfterDelay = FLPROG_AHT_READ_DATA_STEP;
-    step = FLPROG_AHT_WAITING_DELAY;
+    gotoStepWithDelay(FLPROG_AHT_READ_DATA_STEP, 150);
 }
 
 void FLProgAHT_XX::readData()
@@ -169,7 +111,7 @@ void FLProgAHT_XX::readData()
     result = ((temp[3] & 0x0F) << 16) | (temp[4] << 8) | temp[5];
     temper = result;
     temper = ((200 * temper) / 1048576) - 50;
-    step = FLPROG_AHT_WAITING_READ_STEP;
+    step = FLPROG_SENSOR_WAITING_READ_STEP;
 }
 
 uint8_t FLProgAHT_XX::readStatus()
@@ -186,7 +128,8 @@ uint8_t FLProgAHT_XX::readStatus()
 
 void FLProgAHT_XX::reset(void)
 {
-    if (i2cDevice->fullWrite(addres, eSensorResetCmd))
+    codeError = i2cDevice->fullWrite(addres, eSensorResetCmd);
+    if (codeError)
     {
         createError();
         return;
@@ -195,9 +138,4 @@ void FLProgAHT_XX::reset(void)
     sizeDelay = 20;
     stepAfterDelay = FLPROG_AHT_WAITING_READ_STEP;
     step = FLPROG_AHT_WAITING_DELAY;
-}
-
-void FLProgAHT_XX::setReadPeriod(uint32_t period)
-{
-    readPeriod = period;
 }
