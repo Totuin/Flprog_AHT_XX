@@ -134,8 +134,5 @@ void FLProgAHT_XX::reset(void)
         createError();
         return;
     }
-    startDelay = millis();
-    sizeDelay = 20;
-    stepAfterDelay = FLPROG_AHT_WAITING_READ_STEP;
-    step = FLPROG_AHT_WAITING_DELAY;
+    gotoStepWithDelay(FLPROG_SENSOR_WAITING_READ_STEP, 20);
 }
