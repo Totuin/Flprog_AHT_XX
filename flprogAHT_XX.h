@@ -3,6 +3,7 @@
 #include <math.h>
 #include "Arduino.h"
 #include "flprogUtilites.h"
+#include "flprogI2C.h"
 
 #define FLPROG_AHT_CHECK_DEVICE_STATUS_STEP 10
 #define FLPROG_AHT_READ_DATA_STEP 11
