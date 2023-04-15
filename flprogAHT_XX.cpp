@@ -5,7 +5,7 @@ uint8_t eSensorCalibrateCmd[3] = {0xE1, 0x08, 0x00};
 uint8_t eSensorMeasureCmd[3] = {0xAC, 0x33, 0x00};
 uint8_t eSensorResetCmd = 0xBA;
 
-FLProgAHT_XX::FLProgAHT_XX(FLProgI2C *device)
+FLProgAHT_XX::FLProgAHT_XX(AbstractFLProgI2C *device)
 {
     i2cDevice = device;
     codeError = FLPROG_SENSOR_NOT_READY_ERROR;

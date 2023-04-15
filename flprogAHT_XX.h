@@ -11,7 +11,7 @@
 class FLProgAHT_XX : public FLProgI2cStepWorkSensor
 {
 public:
-    FLProgAHT_XX(FLProgI2C *device);
+    FLProgAHT_XX(AbstractFLProgI2C *device);
     void pool();
     float getHumidity() { return hum; };
     float getTemperature() { return temper; };
